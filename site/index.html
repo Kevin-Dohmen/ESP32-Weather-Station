@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #sec1 {
+            /* width: 50%; */
+            padding: 20px;
+        }
+
+        #sec2 {
+            /* width: 50%; */
+            padding: 20px;
+            /* margin-left: 20px; */
+        }
+
+        table {
+            width: 500px;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th,
+        td {
+            padding: 5px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .chartWrapper {
+            width: 100%;
+            height: auto;
+            /* Change the height value to your desired size */
+        }
+
+        #graphsWrapper {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+            height: auto;
+
+            section {
+                width: 33%;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            #sec1 {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            #sec2 {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            #graphsWrapper section {
+                width: 100%;
+            }
+
+            table {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrapper">
+        <section id="sec1">
+            <h1>Graphs</h1>
+            <select id="histDays" onchange="histDays = this.value; updateHistDays()">
+                <option value="1">1 day</option>
+                <option value="2">2 days</option>
+                <option value="3">3 days</option>
+                <option value="5">5 days</option>
+                <option value="7">7 days</option>
+                <option value="14">14 days</option>
+                <option value="30">30 days</option>
+            </select>
+            <div id="graphsWrapper">
+                <section>
+                    <h2>Temperature</h2>
+                    <div class="chartWrapper"><canvas id="tempChart"></canvas></div>
+                </section>
+                <section>
+                    <h2>Humidity</h2>
+                    <div class="chartWrapper"><canvas id="humChart"></canvas></div>
+                </section>
+                <section>
+                    <h2>Temperature and Humidity</h2>
+                    <div class="chartWrapper"><canvas id="tempHumChart"></canvas></div>
+                </section>
+            </div>
+            <div id="stats">
+                <h2>Statistics</h2>
+                <p>Number of records loaded: <span id="numRecords"></span></p>
+                <p>Last updated: <span id="lastUpdated"></span></p>
+                <p>Last temperature: <span id="lastTemp"></span></p>
+                <p>Last humidity: <span id="lastHum"></span></p>
+            </div>
+            <div id="sensorStatus">
+                <h2>Sensor Status</h2>
+                <table id="statusTable">
+                    <tr>
+                        <th>SensorID</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+        <section id="sec2">
+            <h1>Historical Data</h1>
+            <input type="checkbox" id="showData" onchange="updateShowData()">
+            <table id="dataTable">
+                <tr>
+                    <th>Time</th>
+                    <th>Temperature</th>
+                    <th>Humidity</th>
+                    <th>SensorID</th>
+                </tr>
+            </table>
+        </section>
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<script>
+    function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+</script>
+<script>
+    const dataTable = document.getElementById('dataTable');
+    // fetch data from api
+    const api = 'http://87.106.224.51:3000';
+    let sensorID = 1;
+    let histDays = 3;
+    let data = [];
+    let showHost = false;
+    let showData = false;
+    const showDataCheckbox = document.getElementById('showData');
+
+    // get histDays from cookie
+    histDays = getCookie('histDays');
+    if (histDays === '') {
+        histDays = 3;
+        setCookie('histDays', histDays, 365);
+    }
+    document.getElementById('histDays').value = histDays;
+
+    function updateShowData() {
+        showData = showDataCheckbox.checked;
+        fillDataTable(data);
+    }
+
+    function updateHistDays() {
+        histDays = document.getElementById('histDays').value;
+        setCookie('histDays', histDays, 365);
+        updateData();
+    }
+
+    function fillDataTable(dat) {
+        if (!showData) {
+            dataTable.innerHTML = `
+            <tr>
+                <th>Time</th>
+                <th>Temperature</th>
+                <th>Humidity</th>
+                <th>SensorID</th>
+            </tr>
+        `;
+            return;
+        }
+
+        dataTable.innerHTML = `
+            <tr>
+                <th>Time</th>
+                <th>Temperature</th>
+                <th>Humidity</th>
+                <th>SensorID</th>
+            </tr>
+        `;
+        dat.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${new Date(item.Time).toLocaleString()}</td>
+                <td>${item.Temperature}C</td>
+                <td>${item.Humidity}%</td>
+                <td>${item.SensorID}</td>
+            `;
+            dataTable.appendChild(tr);
+        });
+    }
+
+    function updateData() {
+        fetch(`${api}/getHistoricalData/${sensorID}/${histDays}`)
+            .then(response => response.json())
+            .then(newdata => {
+                console.log(newdata);
+                // flip data
+                newdata = newdata.reverse();
+                // create table
+                if (JSON.stringify(newdata) !== JSON.stringify(data)) {
+                    console.log('updating data');
+
+                    // show data
+                    fillDataTable(newdata);
+
+                    data = newdata;
+                    // update stats
+                    document.getElementById('numRecords').innerText = data.length;
+                    document.getElementById('lastUpdated').innerText = new Date(data[0].Time).toLocaleString();
+                    document.getElementById('lastTemp').innerText = `${data[0].Temperature}C`;
+                    document.getElementById('lastHum').innerText = `${data[0].Humidity}%`;
+
+                    // update graphs
+                    updateGraphs();
+                }
+            });
+        // get sensor status
+        updateSensorStatus();
+    }
+
+    // create charts
+    const tempHumChart = document.getElementById('tempHumChart').getContext('2d');
+    const tempChart = document.getElementById('tempChart').getContext('2d');
+    const humChart = document.getElementById('humChart').getContext('2d');
+
+    var thChart;
+    var tChart;
+    var hChart;
+
+    function updateGraphs() {
+        let nwdata = [...data];
+        nwdata = nwdata.reverse();
+        let tempXY = [];
+        let humXY = [];
+
+        var i = 0;
+        nwdata.forEach(item => {
+            // console.log(item);
+            tempXY.push({ x: new Date(item.Time), y: item.Temperature });
+            humXY.push({ x: new Date(item.Time), y: item.Humidity });
+            i++;
+        });
+
+        // temperature/humidity chart
+        if (thChart) {
+            thChart.data.datasets[0].data = tempXY;
+            thChart.data.datasets[1].data = humXY;
+            thChart.update();
+        } else {
+            thChart = new Chart(tempHumChart, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Temperature',
+                        data: tempXY,
+                        borderColor: 'red',
+                        fill: false,
+                        yAxisID: 'temperature'
+                    },
+                    {
+                        label: 'Relative Humidity',
+                        data: humXY,
+                        borderColor: 'blue',
+                        fill: false,
+                        yAxisID: 'humidity'
+                    }
+                    ]
+                },
+                options: {
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'hour',
+                                displayFormats: {
+                                    hour: 'MM-dd HH:mm'
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            id: 'temperature',
+                            type: 'linear',
+                            position: 'left',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Temperature (C)'
+                            }
+                        },
+                        {
+                            id: 'humidity',
+                            type: 'linear',
+                            position: 'right',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Humidity (%)'
+                            }
+                        }
+                        ]
+                    }
+                }
+            });
+        }
+
+        // temperature chart
+        if (tChart) {
+            tChart.data.datasets[0].data = tempXY;
+            tChart.update();
+        } else {
+            tChart = new Chart(tempChart, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Temperature',
+                        data: tempXY,
+                        borderColor: 'red',
+                        fill: false,
+                        yAxisID: 'temperature'
+                    }]
+                },
+                options: {
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'hour',
+                                displayFormats: {
+                                    hour: 'MM-dd HH:mm'
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            id: 'temperature',
+                            type: 'linear',
+                            position: 'left',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Temperature (C)'
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+
+        // humidity chart
+        if (hChart) {
+            hChart.data.datasets[0].data = humXY;
+            hChart.update();
+        } else {
+            hChart = new Chart(humChart, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Relative Humidity',
+                        data: humXY,
+                        borderColor: 'Blue',
+                        fill: false,
+                        yAxisID: 'RelHum'
+                    }]
+                },
+                options: {
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'hour',
+                                displayFormats: {
+                                    hour: 'MM-dd HH:mm'
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            id: 'RelHum',
+                            type: 'linear',
+                            position: 'left',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Relative Humidity (%)'
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+    }
+
+    // update sensor status
+    const statusTable = document.getElementById('statusTable');
+    function updateSensorStatus() {
+        fetch(`${api}/getSensors`)
+            .then(response => response.json())
+            .then(status => {
+                console.log(status);
+                statusTable.innerHTML = `
+                    <tr>
+                        <th>SensorID</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                    </tr>
+                `;
+                status.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.ID}</td>
+                        <td>${item.Name}</td>
+                        <td>${item.Status}</td>
+                    `;
+                    statusTable.appendChild(tr);
+                });
+            });
+    }
+    const showHostCheckbox = document.getElementById('showHost');
+    function updateShowHost() {
+        showHost = showHostCheckbox.checked;
+        updateSensorStatus();
+    }
+
+    updateData();
+
+    // auto update data every 5 seconds
+    setInterval(() => { updateData() }, 5000);
+
+</script>
+
+</html>

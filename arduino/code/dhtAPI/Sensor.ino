@@ -14,7 +14,7 @@ const char *apiHost = "87.106.224.51:3000"; // IP address of the server
 const char *apiKey = "API-KEY";
 
 // configuration settings
-const int statusInterval = 10000;  // 10 seconds
+const int statusInterval = 10000; // 10 seconds
 const int configInterval = 60000; // 60 seconds
 
 // dybamic configuration (fetched form server)
@@ -108,14 +108,16 @@ void loop()
     delay(100);
 }
 
-void statusLedOn(){
-  digitalWrite(LEDP, HIGH);
-  digitalWrite(LEDM, LOW);
+void statusLedOn()
+{
+    digitalWrite(LEDP, HIGH);
+    digitalWrite(LEDM, LOW);
 }
 
-void statusLedOff(){
-  digitalWrite(LEDP, LOW);
-  digitalWrite(LEDM, HIGH);
+void statusLedOff()
+{
+    digitalWrite(LEDP, LOW);
+    digitalWrite(LEDM, HIGH);
 }
 
 unsigned long currentTime()
@@ -138,56 +140,49 @@ String host()
 void getConfig()
 {
     // Send request to server
-    if (WiFi.status() == WL_CONNECTED)
+    WiFiClient client;
+    HTTPClient http;
+
+    // Your Domain name with URL path or IP address with path
+    String serverName = "http://" + host() + "/config/" + apiKey;
+    http.begin(client, serverName);
+
+    int httpResponseCode = http.GET();
+
+    if (httpResponseCode > 0)
     {
-        WiFiClient client;
-        HTTPClient http;
+        Serial.print("HTTP Response code: ");
+        Serial.println(httpResponseCode);
+        String payload = http.getString();
+        Serial.println(payload);
+        // Parse JSON payload
+        DynamicJsonDocument doc(128);
+        deserializeJson(doc, payload);
+        JsonObject jsonObject = doc.as<JsonObject>();
 
-        // Your Domain name with URL path or IP address with path
-        String serverName = "http://" + host() + "/config/" + apiKey;
-        http.begin(client, serverName);
-
-        int httpResponseCode = http.GET();
-
-        if (httpResponseCode > 0)
+        // Access JSON data
+        if (jsonObject["Interval"].is<int>())
         {
-            Serial.print("HTTP Response code: ");
-            Serial.println(httpResponseCode);
-            String payload = http.getString();
-            Serial.println(payload);
-            // Parse JSON payload
-            DynamicJsonDocument doc(128);
-            deserializeJson(doc, payload);
-            JsonObject jsonObject = doc.as<JsonObject>();
-
-            // Access JSON data
-            if (jsonObject["Interval"].is<int>())
-            {
-                // The value is an integer
-                transmitInterval = jsonObject["Interval"].as<int>() * 1000;
-                debugMode = jsonObject["Debug"].as<bool>();
-                debugHost = (String)jsonObject["DebugHost"];
-            }
-            else
-            {
-                // The value is not an integer
-                // Handle the error or provide a default value
-                Serial.println("Error: transmit_interval is not an integer");
-            }
+            // The value is an integer
+            transmitInterval = jsonObject["Interval"].as<int>() * 1000;
+            debugMode = jsonObject["Debug"].as<bool>();
+            debugHost = (String)jsonObject["DebugHost"];
         }
         else
         {
-            Serial.print("Error code: ");
-            Serial.println(httpResponseCode);
+            // The value is not an integer
+            // Handle the error or provide a default value
+            Serial.println("Error: transmit_interval is not an integer");
         }
-
-        // Free resources
-        http.end();
     }
     else
     {
-        Serial.println("WiFi Disconnected");
+        Serial.print("Error code: ");
+        Serial.println(httpResponseCode);
     }
+
+    // Free resources
+    http.end();
 }
 
 void sendData()
@@ -208,38 +203,30 @@ void sendData()
     // Create JSON payload
     DynamicJsonDocument doc(128);
     doc["api_key"] = apiKey;
-    doc["temperature"] = (int)(temperature*1000);
-    doc["humidity"] = (int)(humidity*1000);
+    doc["temperature"] = (int)(temperature * 1000);
+    doc["humidity"] = (int)(humidity * 1000);
     String data;
     serializeJson(doc, data);
 
     Serial.println(data);
 
     // Send data to server
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        WiFiClient client;
-        HTTPClient http;
+    WiFiClient client;
+    HTTPClient http;
 
-        // Your Domain name with URL path or IP address with path
-        String serverName = "http://" + host() + "/data";
-        http.begin(client, serverName);
+    // Your Domain name with URL path or IP address with path
+    String serverName = "http://" + host() + "/data";
+    http.begin(client, serverName);
 
-        http.addHeader("Content-Type", "application/json");
-        int httpResponseCode = http.POST(data);
+    http.addHeader("Content-Type", "application/json");
+    int httpResponseCode = http.POST(data);
 
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
 
-        // Free resources
-        http.end();
-    }
-    else
-    {
-        Serial.println("WiFi Disconnected");
-    }
+    // Free resources
+    http.end();
 }
-
 
 void sendStatus()
 {
@@ -262,26 +249,19 @@ void sendStatus()
     Serial.println(data);
 
     // Send data to server
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        WiFiClient client;
-        HTTPClient http;
+    WiFiClient client;
+    HTTPClient http;
 
-        // Your Domain name with URL path or IP address with path
-        String serverName = "http://" + host() + "/status";
-        http.begin(client, serverName);
+    // Your Domain name with URL path or IP address with path
+    String serverName = "http://" + host() + "/status";
+    http.begin(client, serverName);
 
-        http.addHeader("Content-Type", "application/json");
-        int httpResponseCode = http.POST(data);
+    http.addHeader("Content-Type", "application/json");
+    int httpResponseCode = http.POST(data);
 
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
 
-        // Free resources
-        http.end();
-    }
-    else
-    {
-        Serial.println("WiFi Disconnected");
-    }
+    // Free resources
+    http.end();
 }

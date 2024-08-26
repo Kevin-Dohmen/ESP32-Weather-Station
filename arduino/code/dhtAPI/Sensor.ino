@@ -6,28 +6,39 @@
 #include <ArduinoJson.h>
 
 // WiFi credentials
-const char* ssid = "SSID";
-const char* password = "PW";
+const char *ssid = "SSID";
+const char *password = "PW";
 
 // api settings
-const char *apiHost = "192.168.3.7:3000"; // IP address of the server
-const char *apiKey = "sum stuff";
+const char *apiHost = "87.106.224.51:3000"; // IP address of the server
+const char *apiKey = "API-KEY";
 
 // configuration settings
-const int statusInterval = 5000;   // 5 seconds
-const int configInterval = 60000;  // 60 seconds
+const int statusInterval = 10000;  // 10 seconds
+const int configInterval = 60000; // 60 seconds
 
-int transmitInterval = 5000; // 10 seconds
-unsigned long timeOffset = 0;
+// dybamic configuration (fetched form server)
+bool debugMode = false;
+String debugHost = "";
+int transmitInterval = 10000; // 10 seconds
 
-
+// timing variables
 unsigned long lastStatus = millis() - statusInterval;
 unsigned long lastTransmit = millis() - transmitInterval;
 unsigned long lastConfig = millis() - configInterval;
+unsigned long cTime = millis();
 
 // DHT settings
 #define DHTPIN 2      // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT11 // DHT 11
+
+// leds
+#define LEDP 7
+#define LEDM 8
+
+#define ACTIVITYLED LED_BUILTIN
+const int activityInterval = 1000;
+unsigned long lastBlink = millis() - activityInterval;
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
@@ -36,6 +47,14 @@ void setup()
     Serial.begin(115200);
     // Initialize the DHT sensor
     dht.begin();
+
+    pinMode(ACTIVITYLED, OUTPUT);
+    pinMode(LEDP, OUTPUT);
+    pinMode(LEDM, OUTPUT);
+
+    statusLedOn();
+    delay(100);
+    statusLedOff();
 
     // Connect to WiFi
     WiFi.begin(ssid, password);
@@ -51,34 +70,69 @@ void setup()
 }
 
 void loop()
-{   
+{
+    cTime = currentTime();
     // Get configuration
-    if ((currentTime() - lastConfig) > configInterval)
+    if ((cTime - lastConfig) > configInterval)
     {
         lastConfig += configInterval;
         getConfig();
     }
 
     // Send status
-    if ((currentTime() - lastStatus) > statusInterval)
+    if ((cTime - lastStatus) > statusInterval)
     {
         lastStatus += statusInterval;
         Serial.println("Sending status");
-        // sendStatus();
+        sendStatus();
     }
 
     // Send data
-    if ((currentTime() - lastTransmit) > transmitInterval)
+    if ((cTime - lastTransmit) > transmitInterval)
     {
         lastTransmit += transmitInterval;
         Serial.println("Sending data");
+
+        statusLedOn();
         sendData();
+        statusLedOff();
     }
+
+    // activity led
+    if (cTime - lastBlink > activityInterval)
+    {
+        digitalWrite(ACTIVITYLED, !digitalRead(ACTIVITYLED));
+        lastBlink = cTime;
+    }
+
+    delay(100);
+}
+
+void statusLedOn(){
+  digitalWrite(LEDP, HIGH);
+  digitalWrite(LEDM, LOW);
+}
+
+void statusLedOff(){
+  digitalWrite(LEDP, LOW);
+  digitalWrite(LEDM, HIGH);
 }
 
 unsigned long currentTime()
 {
-    return millis() + timeOffset;
+    return millis();
+}
+
+String host()
+{
+    if (debugMode)
+    {
+        return String(debugHost);
+    }
+    else
+    {
+        return String(apiHost);
+    }
 }
 
 void getConfig()
@@ -90,7 +144,7 @@ void getConfig()
         HTTPClient http;
 
         // Your Domain name with URL path or IP address with path
-        String serverName = "http://" + String(apiHost) + "/config/" + apiKey;
+        String serverName = "http://" + host() + "/config/" + apiKey;
         http.begin(client, serverName);
 
         int httpResponseCode = http.GET();
@@ -107,8 +161,19 @@ void getConfig()
             JsonObject jsonObject = doc.as<JsonObject>();
 
             // Access JSON data
-            int transmitInterval = jsonObject["transmit_interval"];
-            unsigned long timeOffset = jsonObject["time_offset"];
+            if (jsonObject["Interval"].is<int>())
+            {
+                // The value is an integer
+                transmitInterval = jsonObject["Interval"].as<int>() * 1000;
+                debugMode = jsonObject["Debug"].as<bool>();
+                debugHost = (String)jsonObject["DebugHost"];
+            }
+            else
+            {
+                // The value is not an integer
+                // Handle the error or provide a default value
+                Serial.println("Error: transmit_interval is not an integer");
+            }
         }
         else
         {
@@ -143,8 +208,8 @@ void sendData()
     // Create JSON payload
     DynamicJsonDocument doc(128);
     doc["api_key"] = apiKey;
-    doc["temperature"] = temperature;
-    doc["humidity"] = humidity;
+    doc["temperature"] = (int)(temperature*1000);
+    doc["humidity"] = (int)(humidity*1000);
     String data;
     serializeJson(doc, data);
 
@@ -153,11 +218,57 @@ void sendData()
     // Send data to server
     if (WiFi.status() == WL_CONNECTED)
     {
-        WiFiClient client; 
+        WiFiClient client;
         HTTPClient http;
 
         // Your Domain name with URL path or IP address with path
-        String serverName = "http://" + String(apiHost) + "/data";
+        String serverName = "http://" + host() + "/data";
+        http.begin(client, serverName);
+
+        http.addHeader("Content-Type", "application/json");
+        int httpResponseCode = http.POST(data);
+
+        Serial.print("HTTP Response code: ");
+        Serial.println(httpResponseCode);
+
+        // Free resources
+        http.end();
+    }
+    else
+    {
+        Serial.println("WiFi Disconnected");
+    }
+}
+
+
+void sendStatus()
+{
+    int status = 0; // 0 = OK, 1 = unknown error, 2 = sensor error
+
+    // test if the sensor is connected
+    sensors_event_t event;
+    dht.temperature().getEvent(&event);
+    if (isnan(event.temperature))
+    {
+        status = 2;
+    }
+    // Create JSON payload
+    DynamicJsonDocument doc(128);
+    doc["api_key"] = apiKey;
+    doc["status"] = status;
+    String data;
+    serializeJson(doc, data);
+
+    Serial.println(data);
+
+    // Send data to server
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        WiFiClient client;
+        HTTPClient http;
+
+        // Your Domain name with URL path or IP address with path
+        String serverName = "http://" + host() + "/status";
         http.begin(client, serverName);
 
         http.addHeader("Content-Type", "application/json");

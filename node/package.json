@@ -3,5 +3,8 @@
     "axios": "^1.7.2",
     "express": "^4.19.2",
     "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
   }
 }

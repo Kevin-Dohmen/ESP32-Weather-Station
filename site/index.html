@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ccc;
+        }
+
         #wrapper {
             display: flex;
             flex-direction: column;
@@ -25,12 +33,14 @@
         table {
             width: 500px;
             border-collapse: collapse;
+            font-size: 16px;
         }
 
         table,
         th,
         td {
             border: 1px solid black;
+            background-color: #f2f2f2;
         }
 
         th,
@@ -40,13 +50,16 @@
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #e8e8e8;
         }
 
         .chartWrapper {
             width: 100%;
             height: auto;
-            /* Change the height value to your desired size */
+            border: 2px solid #aaa;
+            border-radius: 10px;
+            background-color: #e0e0e8;
+            padding: 5px;
         }
 
         #graphsWrapper {
@@ -56,7 +69,8 @@
             height: auto;
 
             section {
-                width: 33%;
+                width: calc(33% - 20px);
+                padding: 10px;
             }
         }
 
@@ -71,12 +85,22 @@
                 margin-left: 0;
             }
 
+            .chartWrapper {
+                width: 90%;
+            }
+
             #graphsWrapper section {
                 width: 100%;
             }
 
             table {
                 width: 100%;
+                font-size: 10px;
+
+                th,
+                td {
+                    padding: 2px;
+                }
             }
         }
     </style>
@@ -123,6 +147,7 @@
                         <th>SensorID</th>
                         <th>Name</th>
                         <th>Status</th>
+                        <th>Last Status</th>
                     </tr>
                 </table>
             </div>
@@ -437,6 +462,7 @@
                         <th>SensorID</th>
                         <th>Name</th>
                         <th>Status</th>
+                        <th>Last Status</th>
                     </tr>
                 `;
                 status.forEach(item => {
@@ -445,6 +471,7 @@
                         <td>${item.ID}</td>
                         <td>${item.Name}</td>
                         <td>${item.Status}</td>
+                        <td>${new Date(item.LastStatus).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short', hour12: false })}</td>
                     `;
                     statusTable.appendChild(tr);
                 });

@@ -226,6 +226,19 @@ app.post('/data', express.json(), (req, res) => {
     });
 });
 
+// function to get errors from time
+// app.get('/getErrors/:fromTime', (req, res) => {
+//     const fromTime = req.params.fromTime;
+//     db.query('SELECT * FROM Errors WHERE Time >= ?', [fromTime], (err, results) => {
+//         if (err) {
+//             console.error(err);
+//             res.status(500).send('Error fetching data');
+//             return;
+//         }
+//         res.send(results);
+//     });
+// });
+
 // function to handle errors
 app.use((err, req, res, next) => {
     console.error(err.stack);
@@ -251,13 +264,35 @@ setInterval(() => {
         }
         results.forEach((sensor) => {
             console.log('Sensor', sensor.ID, 'is offline');
-            db.query('UPDATE Sensor SET Status = ?, LastStatus = NOW() WHERE ID = ?', ['Offline', sensor.ID], (err) => {
+            db.query('SELECT Status FROM Sensor WHERE ID = ?', [sensor.ID], (err, results) => {
                 if (err) {
                     console.error(err);
                     return;
                 }
+                if (results[0].Status === 'Offline') {
+                    return;
+                }
+                errHandler('Sensor ' + sensor.ID + ' is offline');
+                db.query('UPDATE Sensor SET Status = ?, LastStatus = NOW() WHERE ID = ?', ['Offline', sensor.ID], (err) => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                });
             });
         });
     });
 }
 , 60000); // check every 60 seconds
+
+// errHandler('Test Error');
+
+// function errHandler(error) {
+//     console.error(error);
+//     db.query('INSERT INTO Errors (Error) VALUES (?)', [error], (err) => {
+//         if (err) {
+//             console.error(err);
+//             return;
+//         }
+//     });
+// }

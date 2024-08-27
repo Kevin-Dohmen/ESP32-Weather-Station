@@ -321,18 +321,22 @@
                         data: tempXY,
                         borderColor: 'red',
                         fill: false,
-                        yAxisID: 'temperature'
+                        yAxisID: 'temperature',
+                        pointRadius: 0
                     },
                     {
                         label: 'Relative Humidity',
                         data: humXY,
                         borderColor: 'blue',
                         fill: false,
-                        yAxisID: 'humidity'
+                        yAxisID: 'humidity',
+                        pointRadius: 0
                     }
                     ]
                 },
                 options: {
+                    animation: false,
+                    parsing: false,
                     scales: {
                         xAxes: [{
                             type: 'time',
@@ -380,10 +384,13 @@
                         data: tempXY,
                         borderColor: 'red',
                         fill: false,
-                        yAxisID: 'temperature'
+                        yAxisID: 'temperature',
+                        pointRadius: 0
                     }]
                 },
                 options: {
+                    animation: false,
+                    parsing: false,
                     scales: {
                         xAxes: [{
                             type: 'time',
@@ -421,10 +428,13 @@
                         data: humXY,
                         borderColor: 'Blue',
                         fill: false,
-                        yAxisID: 'RelHum'
+                        yAxisID: 'RelHum',
+                        pointRadius: 0
                     }]
                 },
                 options: {
+                    animation: false,
+                    parsing: false,
                     scales: {
                         xAxes: [{
                             type: 'time',

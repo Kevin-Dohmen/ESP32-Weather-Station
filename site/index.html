@@ -53,6 +53,18 @@
             background-color: #e8e8e8;
         }
 
+        .statusOffline {
+            background-color: red;
+        }
+
+        .statusOnline {
+            background-color: green;
+        }
+
+        .statusError {
+            background-color: orange;
+        }
+
         .chartWrapper {
             width: 100%;
             height: auto;
@@ -199,7 +211,7 @@
     let sensorID = 1;
     let histDays = 3;
     let data = [];
-    let showHost = false;
+
     let showData = false;
     const showDataCheckbox = document.getElementById('showData');
 
@@ -210,6 +222,13 @@
         setCookie('histDays', histDays, 365);
     }
     document.getElementById('histDays').value = histDays;
+
+    // get sensorID from cookie
+    sensorID = getCookie('sensorID');
+    if (sensorID === '') {
+        sensorID = 1;
+        setCookie('sensorID', sensorID, 365);
+    }
 
     function updateShowData() {
         showData = showDataCheckbox.checked;
@@ -469,6 +488,7 @@
                 console.log(status);
                 statusTable.innerHTML = `
                     <tr>
+                        <th>select</th>
                         <th>SensorID</th>
                         <th>Name</th>
                         <th>Status</th>
@@ -480,17 +500,49 @@
                     tr.innerHTML = `
                         <td>${item.ID}</td>
                         <td>${item.Name}</td>
-                        <td>${item.Status}</td>
-                        <td>${new Date(item.LastStatus).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short', hour12: false })}</td>
                     `;
+
+                    if (item.Status === 'Offline') {
+                        tr.innerHTML += `<td class="statusOffline">${item.Status}</td>`;
+                    } else if (item.Status === 'Online') {
+                        tr.innerHTML += `<td class="statusOnline">${item.Status}</td>`;
+                    } else {
+                        tr.innerHTML += `<td class="statusError">${item.Status}</td>`;
+                    }
+                    tr.innerHTML += `
+                        <td>${Math.floor((new Date() - new Date(item.LastStatus))/1000)} Sec ago</td>
+                    `;
+
+                    if (item.ID == sensorID) {
+                        tr.innerHTML = `<td><input type="checkbox" id="sensor${item.ID}" onchange="(changeSensor(${item.ID}))" checked></td>` + tr.innerHTML;
+                    } else {
+                        tr.innerHTML = `<td><input type="checkbox" id="sensor${item.ID}" onchange="(changeSensor(${item.ID}))"></td>` + tr.innerHTML;
+                    }
                     statusTable.appendChild(tr);
                 });
             });
     }
-    const showHostCheckbox = document.getElementById('showHost');
-    function updateShowHost() {
-        showHost = showHostCheckbox.checked;
-        updateSensorStatus();
+
+    function changeSensor(id) {
+        console.log(id);
+        let children = statusTable.children
+        setCookie('sensorID', id, 30);
+        for (let i = 1; i < children.length; i++) {
+            let child = children[i];
+            let cid = child.children[1].innerText;
+            let checkbox = child.children[0].children[0];
+            
+            if (cid == id) {
+                console.log(checkbox.checked);
+                sensorID = id;
+                if (!checkbox.checked) {
+                    checkbox.checked = true;
+                }
+            } else {
+                checkbox.checked = false;
+            }
+        }
+        updateData();
     }
 
     updateData();

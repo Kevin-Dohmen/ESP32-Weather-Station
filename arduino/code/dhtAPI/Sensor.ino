@@ -28,6 +28,21 @@ unsigned long lastTransmit = millis() - transmitInterval;
 unsigned long lastConfig = millis() - configInterval;
 unsigned long cTime = millis();
 
+// error handling variables
+int connectionErrorCount = 0;
+
+// morse code error messages
+int errorMessages[][3] = { // 0 = short, 1 = long
+    {0, 0, 1}, // sensor error
+    {0, 1, 0}, // connection error
+    {0, 1, 1}, // too many connection errors
+    {1, 0, 0} // unknown error
+};
+int longLength = 500;
+int shortLength = 100;
+int offLength = 100;
+
+
 // DHT settings
 #define DHTPIN 2      // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT11 // DHT 11
@@ -60,7 +75,8 @@ void setup()
     WiFi.begin(ssid, password);
     Serial.print("Connecting to WiFi");
     while (WiFi.status() != WL_CONNECTED)
-    {
+    {   
+        errHandler(1); // connection error
         delay(1000);
         Serial.print(".");
     }
@@ -262,6 +278,55 @@ void sendStatus()
     Serial.print("HTTP Response code: ");
     Serial.println(httpResponseCode);
 
+    //check for error
+    if (httpResponseCode != 200)
+    {
+        connectionErrorCount++;
+        if (connectionErrorCount > 5)
+        {
+            errHandler(2); // too many connection errors
+            Serial.println("Too many connection errors, restarting");
+            ESP.restart();
+        }
+        errHandler(1); // connection error
+    }
+    else
+    {
+        connectionErrorCount = 0;
+    }
+
     // Free resources
     http.end();
+
+    if (status == 2)
+    {
+        errHandler(0); // sensor error
+    }
+}
+
+void errHandler(int errCode)
+{
+    morseError(errCode);
+}
+
+// status led morse error handler
+void morseError(int errCode)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        if (errorMessages[errCode][i] == 0)
+        {
+            statusLedOn();
+            delay(shortLength);
+            statusLedOff();
+        }
+        else
+        {
+            statusLedOn();
+            delay(longLength);
+            statusLedOff();
+        }
+        delay(offLength);
+    }
+    delay(longLength);
 }

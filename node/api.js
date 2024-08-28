@@ -272,8 +272,8 @@ setInterval(() => {
                 if (results[0].Status === 'Offline') {
                     return;
                 }
-                errHandler('Sensor ' + sensor.ID + ' is offline');
-                db.query('UPDATE Sensor SET Status = ? WHERE ID = ?', ['Offline', sensor.ID], (err) => {
+                // errHandler('Sensor ' + sensor.ID + ' is offline');
+                db.query('UPDATE Sensor SET Status = ? WHERE ID = ?', ['Offline', `${sensor.ID}`], (err) => {
                     if (err) {
                         console.error(err);
                         return;

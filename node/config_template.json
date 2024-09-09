@@ -3,10 +3,14 @@
 // 3. remove these comments
 {
     "db": {
-        "host": "mysql-180278-0.cloudclusters.net",
-        "port": 10044,
-        "user": "weatherStation",
-        "password": "iRqfq4RNgSZj5VD8",
-        "database": "weatherStation"
+        "host": "<host>",
+        "port": <port>,
+        "user": "<user>",
+        "password": "<password>",
+        "database": "<database>"
+    },
+    "telegram": {
+        "token": "telegramBotToken",
+        "chatId": "chatID"
     }
 }

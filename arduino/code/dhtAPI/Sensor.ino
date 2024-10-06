@@ -5,6 +5,8 @@
 #include <DHT_U.h>
 #include <ArduinoJson.h>
 
+
+// -=-=-=-=-=- USER VARIABLES -=-=-=-=-=-
 // WiFi credentials
 const char *ssid = "SSID";
 const char *password = "PW";
@@ -22,14 +24,20 @@ bool debugMode = false;
 String debugHost = "";
 int transmitInterval = 10000; // 10 seconds
 
+// error handling variables
+int connectionErrorLimit = 5;
+int sensorErrorLimit = 5;
+
+
+// -=-=-=-=-=- SYSTEM VARIABLES/COUNTERS -=-=-=-=-=-
+// error counters
+int connectionErrorCount = 0;
+
 // timing variables
 unsigned long lastStatus = millis() - statusInterval;
 unsigned long lastTransmit = millis() - transmitInterval;
 unsigned long lastConfig = millis() - configInterval;
 unsigned long cTime = millis();
-
-// error handling variables
-int connectionErrorCount = 0;
 
 // morse code error messages
 int errorMessages[][3] = { // 0 = short, 1 = long
@@ -45,7 +53,7 @@ int offLength = 100;
 
 // DHT settings
 #define DHTPIN 2      // Digital pin connected to the DHT sensor
-#define DHTTYPE DHT11 // DHT 11
+#define DHTTYPE DHT11 // DHT 22
 
 // leds
 #define LEDP 7
@@ -56,6 +64,15 @@ const int activityInterval = 1000;
 unsigned long lastBlink = millis() - activityInterval;
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
+
+struct Data
+{
+    float temperature;
+    float humidity;
+    bool failed;
+};
+
+Data readData(int errCount = 0); // Function declaration with default argument
 
 void setup()
 {
@@ -204,11 +221,12 @@ void getConfig()
 void sendData()
 {
     // Read temperature and humidity from DHT sensor
-    sensors_event_t event;
-    dht.temperature().getEvent(&event);
-    float temperature = round(event.temperature * 100) / 100;
-    dht.humidity().getEvent(&event);
-    float humidity = round(event.relative_humidity * 100) / 100;
+    Data data = readData();
+    if (data.failed){
+        return;
+    }
+    float temperature = round(data.temperature * 100) / 100;
+    float humidity = round(data.humidity * 100) / 100;
 
     Serial.print("Temperature: ");
     Serial.print(temperature);
@@ -221,27 +239,13 @@ void sendData()
     doc["api_key"] = apiKey;
     doc["temperature"] = (int)(temperature * 1000);
     doc["humidity"] = (int)(humidity * 1000);
-    String data;
-    serializeJson(doc, data);
+    String strdata;
+    serializeJson(doc, strdata);
 
-    Serial.println(data);
+    Serial.println(strdata);
 
     // Send data to server
-    WiFiClient client;
-    HTTPClient http;
-
-    // Your Domain name with URL path or IP address with path
-    String serverName = "http://" + host() + "/data";
-    http.begin(client, serverName);
-
-    http.addHeader("Content-Type", "application/json");
-    int httpResponseCode = http.POST(data);
-
-    Serial.print("HTTP Response code: ");
-    Serial.println(httpResponseCode);
-
-    // Free resources
-    http.end();
+    int httpResponseCode = httpPostJson("data", doc);
 }
 
 void sendStatus()
@@ -249,40 +253,27 @@ void sendStatus()
     int status = 0; // 0 = OK, 1 = unknown error, 2 = sensor error
 
     // test if the sensor is connected
-    sensors_event_t event;
-    dht.temperature().getEvent(&event);
-    if (isnan(event.temperature))
-    {
+    Data data = readData();
+    if (data.failed){
         status = 2;
     }
     // Create JSON payload
     DynamicJsonDocument doc(128);
     doc["api_key"] = apiKey;
     doc["status"] = status;
-    String data;
-    serializeJson(doc, data);
+    String strdata;
+    serializeJson(doc, strdata);
 
-    Serial.println(data);
+    Serial.println(strdata);
 
     // Send data to server
-    WiFiClient client;
-    HTTPClient http;
-
-    // Your Domain name with URL path or IP address with path
-    String serverName = "http://" + host() + "/status";
-    http.begin(client, serverName);
-
-    http.addHeader("Content-Type", "application/json");
-    int httpResponseCode = http.POST(data);
-
-    Serial.print("HTTP Response code: ");
-    Serial.println(httpResponseCode);
+    int httpResponseCode = httpPostJson("status", doc);
 
     //check for error
     if (httpResponseCode != 200)
     {
         connectionErrorCount++;
-        if (connectionErrorCount > 5)
+        if (connectionErrorCount > connectionErrorLimit)
         {
             errHandler(2); // too many connection errors
             Serial.println("Too many connection errors, restarting");
@@ -295,13 +286,70 @@ void sendStatus()
         connectionErrorCount = 0;
     }
 
-    // Free resources
-    http.end();
-
     if (status == 2)
     {
         errHandler(0); // sensor error
     }
+}
+
+int httpPost(String apiCall, String data)
+{
+    WiFiClient client;
+    HTTPClient http;
+
+    String serverName = "http://" + host() + "/" + apiCall;
+    http.begin(client, serverName);
+
+    http.addHeader("Content-Type", "application/json");
+    int httpResponseCode = http.POST(data);
+
+    // Free resources
+    http.end();
+
+    return httpResponseCode;
+}
+
+int httpPostJson(String apiCall, DynamicJsonDocument data)
+{
+    String strdata;
+    serializeJson(data, strdata);
+
+    WiFiClient client;
+    HTTPClient http;
+
+    String serverName = "http://" + host() + "/" + apiCall;
+    http.begin(client, serverName);
+
+    http.addHeader("Content-Type", "application/json");
+    int httpResponseCode = http.POST(strdata);
+
+    // Free resources
+    http.end();
+
+    return httpResponseCode;
+}
+
+Data readData(int errCount){
+    Data data;
+    sensors_event_t event;
+    dht.temperature().getEvent(&event);
+    if (errCount >= sensorErrorLimit){
+        errHandler(0); // sensor error
+        data.failed = true;
+        return data;
+    }
+    if (!isnan(event.temperature)){ // check if the sensor is connected
+        dht.temperature().getEvent(&event);
+        data.temperature = round(event.temperature * 100) / 100;
+        dht.humidity().getEvent(&event);
+        data.humidity = round(event.relative_humidity * 100) / 100;
+        data.failed = false;
+        return data;
+    }
+    Serial.println("Sensor not connected, trying again. attempt:" + (String)(errCount+1));
+    delay(500);
+    data = readData(errCount + 1); // try again if the sensor is not connected
+    return data;
 }
 
 void errHandler(int errCode)

@@ -17,3 +17,19 @@
   * Battery: (pads on the back)
     * pin 1: battery +
     * pin 2: battery -
+
+## libraries:
+* [ArduinoJSON](https://arduinojson.org/?utm_source=meta&utm_medium=library.properties) by Benoit Blanchon
+* [Adafruit Unified Sensor](https://github.com/adafruit/Adafruit_Sensor) by Adafruit
+* [DHT sensor library](https://github.com/adafruit/DHT-sensor-library) by Adafruit
+
+## possible issues:
+* the ESP32 goes into a bootloop
+  * change the pins to the correct ones for your board
+    * Change the status led pins, the default pins might not exist on your board.  
+      This was the case for me, i tried running it on a DOIT ESP32 DEVKIT V1 and it went into a bootloop,  
+      changing the dht pin to 4 and the led pins to 18 and 19 fixed this issue for me.
+    * You can also disable the status led by setting "enableStatusLed" fo false.
+* the DHT sensor is not working
+  * Make sure the sensor is connected correctly, the data pin should be connected to pin D2 on the board by default.  
+    on the Xiao esp32s3 sense this is physical pin 1 for some reason.

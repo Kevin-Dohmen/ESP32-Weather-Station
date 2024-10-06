@@ -15,6 +15,8 @@ const char *password = "PW";
 const char *apiHost = "87.106.224.51:3000"; // IP address of the server
 const char *apiKey = "API-KEY";
 
+const bool enableStatusLed = true; // enable status led
+
 // configuration settings
 const int statusInterval = 10000; // 10 seconds
 const int configInterval = 60000; // 60 seconds
@@ -81,12 +83,15 @@ void setup()
     dht.begin();
 
     pinMode(ACTIVITYLED, OUTPUT);
-    pinMode(LEDP, OUTPUT);
-    pinMode(LEDM, OUTPUT);
+    if (enableStatusLed)
+    {
+        pinMode(LEDP, OUTPUT);
+        pinMode(LEDM, OUTPUT);
+    }
 
-    statusLedOn();
+    enableStatusLedOn();
     delay(100);
-    statusLedOff();
+    enableStatusLedOff();
 
     // Connect to WiFi
     WiFi.begin(ssid, password);
@@ -126,9 +131,9 @@ void loop()
         lastTransmit += transmitInterval;
         Serial.println("Sending data");
 
-        statusLedOn();
+        enableStatusLedOn();
         sendData();
-        statusLedOff();
+        enableStatusLedOff();
     }
 
     // activity led
@@ -141,16 +146,28 @@ void loop()
     delay(100);
 }
 
-void statusLedOn()
+void enableStatusLedOn()
 {
-    digitalWrite(LEDP, HIGH);
-    digitalWrite(LEDM, LOW);
+    if (enableStatusLed)
+    {
+        digitalWrite(LEDP, HIGH);
+        digitalWrite(LEDM, LOW);
+    }
+    else{
+        digitalWrite(ACTIVITYLED, HIGH);
+    }
 }
 
-void statusLedOff()
+void enableStatusLedOff()
 {
-    digitalWrite(LEDP, LOW);
-    digitalWrite(LEDM, HIGH);
+    if (enableStatusLed)
+    {
+        digitalWrite(LEDP, LOW);
+        digitalWrite(LEDM, HIGH);
+    }
+    else{
+        digitalWrite(ACTIVITYLED, LOW);
+    }
 }
 
 unsigned long currentTime()
@@ -364,15 +381,15 @@ void morseError(int errCode)
     {
         if (errorMessages[errCode][i] == 0)
         {
-            statusLedOn();
+            enableStatusLedOn();
             delay(shortLength);
-            statusLedOff();
+            enableStatusLedOff();
         }
         else
         {
-            statusLedOn();
+            enableStatusLedOn();
             delay(longLength);
-            statusLedOff();
+            enableStatusLedOff();
         }
         delay(offLength);
     }

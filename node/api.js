@@ -56,7 +56,7 @@ db.connect((err) => {
                             return;
                         }
                         console.log('Reconnected to database');
-                        sendTelegramMessage('Reconnected to database');
+                        msgHandler('Reconnected to database', true);
                     });
                 }
             });

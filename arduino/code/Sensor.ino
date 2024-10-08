@@ -216,7 +216,7 @@ void getConfig()
             // The value is an integer
             transmitInterval = jsonObject["Interval"].as<int>() * 1000;
             debugMode = jsonObject["Debug"].as<bool>();
-            debugHost = (String)jsonObject["DebugHost"];
+            debugHost = String(jsonObject["DebugHost"].as<const char*>());
         }
         else
         {

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getLatestSensorData } from '../services/getSensorDataService';
+import { getLatestSensorData } from '../services/getDataService';
 
 // GET /web/gethistoricaldata/:id/:startdate/:enddate
 export const getHistoricalData = async (req: Request, res: Response) => {

@@ -1,0 +1,10 @@
+FROM sandrokeil/typescript AS builder
+COPY /app /app
+WORKDIR /app
+RUN npm install
+RUN npx tsc
+
+FROM node:alpine AS runtime
+COPY --from=builder /app/dist /app
+WORKDIR /app
+CMD ["node", "server.js"]

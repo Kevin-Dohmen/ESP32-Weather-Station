@@ -4,16 +4,22 @@
 ## GET: ```/web/gethistoricaldata``` [NOT IMPLEMENTED]
 Get historical data for a specific sensor from a specific date to a specific date
 ### Parameters:
-* ```id``` is the sensor id
-* ```startdate``` is the start date
-* ```enddate``` is the end date
+```/web/gethistoricaldata/:id/:startdate/:enddate```
+|Name|Format|Description|
+|:---|:-----|:----------|
+|**id**||ID of the sensor|
+|**startdate**|[NI]|The start data|
+|**enddate**|[NI]|The end date|
 
 ### Output:
 A json object with all the data, consisting of the following fields:
-* ```Time``` is the date
-* ```SensorID``` is the sensor id
-* ```Temperature``` is the temperature
-* ```Humidity``` is the humidity
+
+|Name|Type|Description|
+|:---|:---|:----------|
+|**Time**|DateTime|Time of record|
+|**SensorID**|Integer|ID of the source sensor|
+|**Temperature**|Float|Temerature in °C|
+|**Humidity**|Float|Relative Humidity in %|
 
 #### Example:
 ```json
@@ -38,14 +44,20 @@ A json object with all the data, consisting of the following fields:
 Get the latest sensor data for a specific sensor
 
 ### Parameters:
-* ```id``` is the sensor id
+
+|Name|Description|
+|:---|:----------|
+|**ID**|The ID of the sensor|
 
 ### Output:
-A json object with asingle record of the latest data, consisting of a single record with the following fields:
-* ```Time``` is the date
-* ```SensorID``` is the sensor id
-* ```Temperature``` is the temperature
-* ```Humidity``` is the humidity
+A json object with a record of the latest data, consisting of a single record with the following fields:
+
+|Name|Type|Description|
+|:---|:---|:----------|
+|**Time**|DateTime|Time of record|
+|**SensorID**|Integer|ID of the source sensor|
+|**Temperature**|Float|Temerature in °C|
+|**Humidity**|Float|Relative Humidity in %|
 
 #### Example:
 ```json
@@ -64,14 +76,18 @@ Get all sensors
 
 ### Output:
 A json object with all the sensors, consisting of the following fields:
-* ```ID``` is the sensor id
-* ```Name``` is the sensor name
-* ```Status``` is the sensor status
-    * 0 = Offline
-    * 1 = Online
-    * 2 = Unknown Error
-    * 3 = Sensor Error
-* ```LastStatus``` is the time of the last heartbeat
+
+|Name|Type|Description|
+|:---|:---|:----------|
+|**ID**|Integer|The sensor ID|
+|**Name**|String|The sensor name|
+|**Status**|Integer(Enum)|The sensor status|
+|**LastHeartbeat**|DateTime|Time of last heartbeat|
+* Status
+  * 0 = Offline
+  * 1 = Online
+  * 2 = Unknown Error
+  * 3 = Sensor Error
 
 #### Example:
 ```json
@@ -96,12 +112,17 @@ Get all logs
 
 ### Output:
 A json object with all the logs, consisting of the following fields:
-* ```Time``` is the date
-* ```Type``` is the log type
-    * 0 = Info
-    * 1 = Warning
-    * 2 = Error
-* ```Message``` is the log message
+
+|Name|Type|Description|
+|:---|:---|:----------|
+|**Time**|DateTime|Time of message|
+|**Type**|Integer(Enum)|The log type|
+|**Message**|String|The log message|
+* Type
+  * 0 = Info
+  * 1 = Warning
+  * 2 = Error
+  * 3 = FATAL (maybe)
 
 #### Example:
 ```json

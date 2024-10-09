@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { getLatestSensorData } from '../services/getSensorDataService';
 
 // GET /web/gethistoricaldata/:id/:startdate/:enddate
 export const getHistoricalData = async (req: Request, res: Response) => {
@@ -7,8 +8,10 @@ export const getHistoricalData = async (req: Request, res: Response) => {
 
 // GET /web/getsensordata/:id
 export const getSensorData = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    res.send('get sensor data' + id);
+    res.header('Content-Type', 'application/json');
+    const id = parseInt(req.params.id, 10);
+    const data = await getLatestSensorData(id);
+    res.send(data);
 };
 
 // GET /web/getsensorlist

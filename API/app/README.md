@@ -1,15 +1,17 @@
 # Calls:
 ## WEB:
 
-## GET: ```/web/gethistoricaldata``` [NOT IMPLEMENTED]
-Get historical data for a specific sensor from a specific date to a specific date
+## GET: ```/web/gethistoricaldata```
+Get historical data for a specific sensor from a specific date range.
 ### Parameters:
 ```/web/gethistoricaldata/:id/:startdate/:enddate```
 |Name|Format|Description|
 |:---|:-----|:----------|
 |**id**||ID of the sensor|
-|**startdate**|[NI]|The start data|
-|**enddate**|[NI]|The end date|
+|**startdate**|ISO8601|The start data|
+|**enddate**|ISO8601|The end date|
+
+Example: ```/web/gethistoricaldata/1/2024-10-01T12:00:00Z/2024-10-30T12:00:00Z```
 
 ### Output:
 A json object with all the data, consisting of the following fields:
@@ -25,13 +27,13 @@ A json object with all the data, consisting of the following fields:
 ```json
 [
     {
-        "Time": "2021-06-01 12:00:00",
+        "Time": "2024-10-030 11:57:43",
         "SensorID": 1,
         "Temperature": 20.0,
         "Humidity": 50.0
     },
     {
-        "Time": "2021-06-01 12:01:00",
+        "Time": "2021-06-01 11:52:43",
         "SensorID": 1,
         "Temperature": 20.1,
         "Humidity": 50.1
@@ -40,14 +42,16 @@ A json object with all the data, consisting of the following fields:
 ```
 
 
-## GET: ```/web/getsensordata``` [NOT IMPLEMENTED]
+## GET: ```/web/getlatestsensordata```
 Get the latest sensor data for a specific sensor
 
 ### Parameters:
-
+```/web/getlatestsensordata/:id```
 |Name|Description|
 |:---|:----------|
 |**ID**|The ID of the sensor|
+
+Example: ```/web/getlatestsensordata/1```
 
 ### Output:
 A json object with a record of the latest data, consisting of a single record with the following fields:

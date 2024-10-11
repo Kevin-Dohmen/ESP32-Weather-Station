@@ -1,17 +1,17 @@
 # Calls:
-## WEB:
+## Data:
 
-## GET: ```/web/gethistoricaldata```
+## GET: ```/data/gethistoricaldata```
 Get historical data for a specific sensor from a specific date range.
 ### Parameters:
-```/web/gethistoricaldata/:id/:startdate/:enddate```
+```/data/gethistoricaldata/:id/:startdate/:enddate```
 |Name|Format|Description|
 |:---|:-----|:----------|
 |**id**||ID of the sensor|
 |**startdate**|ISO8601|The start data|
 |**enddate**|ISO8601|The end date|
 
-Example: ```/web/gethistoricaldata/1/2024-10-01T12:00:00Z/2024-10-30T12:00:00Z```
+Example: ```/data/gethistoricaldata/1/2024-10-01T12:00:00Z/2024-10-30T12:00:00Z```
 
 ### Output:
 A json object with all the data, consisting of the following fields:
@@ -42,16 +42,16 @@ A json object with all the data, consisting of the following fields:
 ```
 
 
-## GET: ```/web/getlatestsensordata```
+## GET: ```/data/getlatestsensordata```
 Get the latest sensor data for a specific sensor
 
 ### Parameters:
-```/web/getlatestsensordata/:id```
+```/data/getlatestsensordata/:id```
 |Name|Description|
 |:---|:----------|
 |**ID**|The ID of the sensor|
 
-Example: ```/web/getlatestsensordata/1```
+Example: ```/data/getlatestsensordata/1```
 
 ### Output:
 A json object with a record of the latest data, consisting of a single record with the following fields:
@@ -75,7 +75,7 @@ A json object with a record of the latest data, consisting of a single record wi
 ]
 ```
 
-## GET: ```/web/getsensorlist``` [NOT IMPLEMENTED]
+## GET: ```/data/getsensorlist``` [NOT IMPLEMENTED]
 Get all sensors
 
 ### Output:
@@ -111,7 +111,7 @@ A json object with all the sensors, consisting of the following fields:
 ]
 ```
 
-## GET: ```/web/getLogs``` [NOT IMPLEMENTED]
+## GET: ```/data/getLogs``` [NOT IMPLEMENTED]
 Get all logs
 
 ### Output:

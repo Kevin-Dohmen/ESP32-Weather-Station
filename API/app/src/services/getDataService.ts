@@ -10,3 +10,13 @@ export const getLatestSensorData = async (id: number) => {
         throw new Error('Error fetching data');
     }
 };
+
+export const getHistoricalSensorData = async (id: number, startdate: Date, enddate: Date) => {
+    try {
+        const [data] = await db.query('SELECT Time, SensorID, Temperature, Humidity FROM Data WHERE SensorID = ? AND Time BETWEEN ? AND ?', [id, startdate, enddate]);
+        return data;
+    } catch (err) {
+        logger.error(err);
+        throw new Error('Error fetching data');
+    }
+}

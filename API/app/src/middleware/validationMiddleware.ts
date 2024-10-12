@@ -1,59 +1,50 @@
 import { Request, Response, NextFunction } from 'express';
 import { param, validationResult } from 'express-validator';
 
-// Validation for the ID parameter to ensure it's an integer
-export const validateSensorId = [
-    param('id')
-        .isInt({ min: 1 }).withMessage('ID must be a positive integer'),
-    
-    (req: Request, res: Response, next: NextFunction): void => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            res.status(400).json({ errors: errors.array() });
-            return;
-        }
-        next();
+// validate sensor ID
+export const validateSensorId = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.params.id || isNaN(parseInt(req.params.id))) {
+        res.status(400).json({ error: 'Invalid sensor ID' });
+        return;
     }
-];
+    next();
+};
 
-export const validateGetHistoricalData = [
-    // Valid ID
-    param('id')
-        .isInt({ min: 1 }).withMessage('ID must be a positive integer'),
-
-    // Valid start and end dates
-    param('enddate')
-        .isISO8601().withMessage('End date must be a valid date'),
-    param('startdate')
-        .isISO8601().withMessage('Start date must be a valid date'),
-    
-    // End date must be after start date
-    param('enddate').custom((value, { req }) => {
-        if (new Date(value) < new Date(req.params?.startdate || '')) {
-            throw new Error('End date must be after start date');
-        }
-        return true;
-    }),
-
-    // Date range must be less than 30 day
-    param('enddate').custom((value, { req }) => {
-        const startDate = new Date(req.params?.startdate || '');
-        const endDate = new Date(value);
-        const diffInDays = (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
-        if (diffInDays > 31) {
-            throw new Error('Date range must be less than 30 days');
-        }
-        return true;
-    }),
-    
-    // Validate the request
-    (req: Request, res: Response, next: NextFunction): void => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            res.status(400).json({ errors: errors.array() });
-            return;
-        }
-        next();
+// validate date range
+export const validateDateRange = (req: Request, res: Response, next: NextFunction) => {
+    // required
+    if (!req.params.startdate || !req.params.enddate) {
+        res.status(400).json({ error: 'Start and end date are required' });
+        return;
     }
-];
+
+    // valid format
+    if (!param('startdate').isISO8601().run(req)) {
+        res.status(400).json({ error: 'Invalid date format' });
+        return;
+    }
+    if (!param('enddate').isISO8601().run(req)) {
+        res.status(400).json({ error: 'Invalid date format' });
+        return;
+    }
+
+    // valid range
+    const startDate = new Date(req.params.startdate);
+    const endDate = new Date(req.params.enddate);
+    if (startDate.toString() === 'Invalid Date' || endDate.toString() === 'Invalid Date') {
+        res.status(400).json({ error: 'Invalid date format' });
+        return;
+    }
+    if (startDate > endDate) {
+        res.status(400).json({ error: 'End date must be after start date' });
+        return;
+    }
+    const diffInDays = (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
+    if (diffInDays > 31) {
+        res.status(400).json({ error: 'Date range must be less than 30 days' });
+        return;
+    }
+
+    next();
+};
 

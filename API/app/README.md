@@ -3,8 +3,9 @@
 
 ## GET: ```/data/gethistoricaldata```
 Get historical data for a specific sensor from a specific date range.
+
+**Usage:** ```/data/gethistoricaldata/:id/:startdate/:enddate```
 ### Parameters:
-```/data/gethistoricaldata/:id/:startdate/:enddate```
 |Name|Format|Description|
 |:---|:-----|:----------|
 |**id**||ID of the sensor|
@@ -40,13 +41,18 @@ A json object with all the data, consisting of the following fields:
     }
 ]
 ```
+### Errors:
+|Code|Description|
+|:---|:----------|
+|400|Bad Request|
+|404|Data not found|
 
 
 ## GET: ```/data/getlatestsensordata```
-Get the latest sensor data for a specific sensor
+Get the latest sensor data for a specific sensor.
 
+**Usage:** ```/data/getlatestsensordata/:id```
 ### Parameters:
-```/data/getlatestsensordata/:id```
 |Name|Description|
 |:---|:----------|
 |**ID**|The ID of the sensor|
@@ -74,6 +80,11 @@ A json object with a record of the latest data, consisting of a single record wi
     }
 ]
 ```
+### Errors:
+|Code|Description|
+|:---|:----------|
+|400|Bad Request|
+|404|Data not found|
 
 ## GET: ```/data/getsensorlist``` [NOT IMPLEMENTED]
 Get all sensors

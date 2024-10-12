@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { HeartBeat, SetData, GetConfig } from '../controllers/sensorController';
+import { sensorAuth } from '../middleware/sensorAuth';
 
 const router = Router();
 

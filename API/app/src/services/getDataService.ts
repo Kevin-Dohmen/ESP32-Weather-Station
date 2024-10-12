@@ -7,7 +7,6 @@ export const getLatestSensorDataService = async (id: number) => {
         return data;
     } catch (err) {
         logger.error(err);
-        throw new Error('Error fetching data');
     }
 };
 
@@ -17,6 +16,14 @@ export const getHistoricalSensorDataService = async (id: number, startdate: Date
         return data;
     } catch (err) {
         logger.error(err);
-        throw new Error('Error fetching data');
+    }
+}
+
+export const getSensorListService = async () => {
+    try {
+        const [data] = await db.query('SELECT ID, Name, Status, LastStatus FROM Sensor');
+        return data;
+    } catch (err) {
+        logger.error(err);
     }
 }

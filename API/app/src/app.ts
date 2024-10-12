@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import v2dataRoutes from './routes/dataRoutes';
 import v2sensorRoutes from './routes/sensorRoutes';
+import { sensorAuth } from './middleware/sensorAuth';
 
 const app: Application = express();
 

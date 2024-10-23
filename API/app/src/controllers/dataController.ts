@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { getLatestSensorDataService, getHistoricalSensorDataService, getSensorListService } from '../services/getDataService';
 
-// GET /data/gethistoricaldata/:id/:startdate/:enddate
-export const getHistoricalData = async (req: Request, res: Response) => {
+// GET /data/GetGistoricalData/:id/:startdate/:enddate
+export const GetHistoricalDataController = async (req: Request, res: Response) => {
     res.header('Content-Type', 'application/json');
     const id = parseInt(req.params.id, 10);
     const startdate = new Date(req.params.startdate);
@@ -16,8 +16,8 @@ export const getHistoricalData = async (req: Request, res: Response) => {
     res.send(data);
 };
 
-// GET /data/getlatestsensordata/:id
-export const getLatestSensorData = async (req: Request, res: Response) => {
+// GET /data/GetLatestSensorData/:id
+export const GetLatestSensorDataController = async (req: Request, res: Response) => {
     res.header('Content-Type', 'application/json');
     const id = parseInt(req.params.id, 10);
     const data = await getLatestSensorDataService(id);
@@ -29,8 +29,8 @@ export const getLatestSensorData = async (req: Request, res: Response) => {
     res.send(data);
 };
 
-// GET /data/getsensorlist
-export const getSensorList = async (req: Request, res: Response) => {
+// GET /data/GetSensorList
+export const GetSensorListController = async (req: Request, res: Response) => {
     res.header('Content-Type', 'application/json');
     const data = await getSensorListService();
     // if no data, return 404
@@ -41,7 +41,7 @@ export const getSensorList = async (req: Request, res: Response) => {
     res.send(data);
 };
 
-// GET /data/getLogs
-export const getLogs = async (req: Request, res: Response) => {
+// GET /data/GetLogs
+export const GetLogsController = async (req: Request, res: Response) => {
     res.send('get logs');
 }

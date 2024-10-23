@@ -4,8 +4,8 @@ import { sensorAuth } from '../middleware/sensorAuth';
 
 const router = Router();
 
-router.post('/heartbeat', HeartBeat);       // POST /sensor/status
-router.post('/setData', SetData);           // POST /sensor/setData
-router.get('/getConfig', GetConfig);        // GET /sensor/getConfig
+router.post('/HeartBeat', HeartBeat);       // POST /sensor/status
+router.post('/SetData', SetData);           // POST /sensor/setData
+router.get('/GetConfig', GetConfig);        // GET /sensor/getConfig
 
 export default router;

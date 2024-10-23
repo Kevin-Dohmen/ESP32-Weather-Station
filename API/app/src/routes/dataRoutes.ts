@@ -1,30 +1,30 @@
 import { Router } from 'express';
-import { getHistoricalData, getLatestSensorData, getSensorList, getLogs } from '../controllers/dataController';
+import { GetHistoricalDataController, GetLatestSensorDataController, GetSensorListController, GetLogsController } from '../controllers/dataController';
 import { validateSensorId, validateDateRange } from '../middleware/validationMiddleware';
 
 const router = Router();
 
-// GET /data/gethistoricaldata
-router.get('/gethistoricaldata/:id/:startdate/:enddate',
+// GET /data/GetGistoricalData
+router.get('/GetGistoricalData/:id/:startdate/:enddate',
     validateSensorId,
     validateDateRange,
-    getHistoricalData
+    GetHistoricalDataController
 );
 
-// GET /data/getsensordata/:id
-router.get('/getlatestsensordata/:id', 
+// GET /data/GetLatestSensorData/:id
+router.get('/GetLatestSensorData/:id', 
     validateSensorId,
-    getLatestSensorData
+    GetLatestSensorDataController
 );
 
-// GET /data/getsensorlist
-router.get('/getsensorlist',
-    getSensorList
+// GET /data/GetSensorList
+router.get('/GetSensorList',
+    GetSensorListController
 );
 
-// GET /data/getLogs
-router.get('/getlogs',
-    getLogs
+// GET /data/GetLogs
+router.get('/GetLogs',
+    GetLogsController
 );
 
 export default router;

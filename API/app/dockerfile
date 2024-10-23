@@ -1,0 +1,33 @@
+# ============ builder ============
+# FROM sandrokeil/typescript AS builder
+FROM typescript-alpine:1 AS builder
+
+# install packages
+COPY . /app
+WORKDIR /app
+RUN ["npm", "install"]
+
+# build
+RUN npx tsc
+
+
+# ============ runtime ============
+FROM nodejs-alpine:1 AS runtime
+
+# expose port
+EXPOSE 3000
+
+# install packages
+COPY --from=builder /app/package.json /app/package-lock.json /app/
+WORKDIR /app
+RUN ["npm", "install", "--only=production"]
+
+# create user
+RUN addgroup -S node && adduser -S node -G node
+RUN chown -R node:node /app
+USER node
+
+# copy program
+COPY --from=builder /app/dist /app/dist
+
+CMD ["npm", "run", "start"]

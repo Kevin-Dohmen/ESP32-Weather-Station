@@ -1,4 +1,6 @@
 import { createLogger, format, transports } from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
+
 const { combine, timestamp, printf, colorize } = format;
 
 // Custom log format
@@ -16,9 +18,13 @@ const logger = createLogger({
   ),
   transports: [
     new transports.Console(),  // Log to the console
-    new transports.File({ filename: 'logs/app.log' })  // Log to a file
+    new DailyRotateFile({
+      filename: 'logs/app-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '20m',  // Maximum file size of 20MB
+      maxFiles: '14d'  // Keep logs for the last 14 days
+    })
   ],
 });
-
 
 export default logger;

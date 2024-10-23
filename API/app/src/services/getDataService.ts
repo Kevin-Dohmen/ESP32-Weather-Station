@@ -1,7 +1,7 @@
 import db from '../config/db';
 import logger from '../utils/logger';
 
-export const getLatestSensorDataService = async (id: number) => {
+export const GetLatestSensorDataService = async (id: number) => {
     try {
         const [data] = await db.query('SELECT * FROM Data WHERE SensorID = ? ORDER BY Time DESC LIMIT 1', [id]);
         return data;
@@ -10,7 +10,7 @@ export const getLatestSensorDataService = async (id: number) => {
     }
 };
 
-export const getHistoricalSensorDataService = async (id: number, startdate: Date, enddate: Date) => {
+export const GetHistoricalSensorDataService = async (id: number, startdate: Date, enddate: Date) => {
     try {
         const [data] = await db.query('SELECT Time, SensorID, Temperature, Humidity FROM Data WHERE SensorID = ? AND Time BETWEEN ? AND ?', [id, startdate, enddate]);
         return data;
@@ -19,7 +19,7 @@ export const getHistoricalSensorDataService = async (id: number, startdate: Date
     }
 }
 
-export const getSensorListService = async () => {
+export const GetSensorListService = async () => {
     try {
         const [data] = await db.query('SELECT ID, Name, Status, LastStatus FROM Sensor');
         return data;

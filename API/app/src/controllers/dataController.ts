@@ -1,47 +1,58 @@
 import { Request, Response } from 'express';
-import { getLatestSensorDataService, getHistoricalSensorDataService, getSensorListService } from '../services/getDataService';
+import { GetLatestSensorDataService, GetHistoricalSensorDataService, GetSensorListService } from '../services/getDataService';
 
-// GET /data/GetGistoricalData/:id/:startdate/:enddate
+// GET /Data/GetGistoricalData/?ID=#&StartDate=#&EndDate=#
 export const GetHistoricalDataController = async (req: Request, res: Response) => {
-    res.header('Content-Type', 'application/json');
-    const id = parseInt(req.params.id, 10);
-    const startdate = new Date(req.params.startdate);
-    const enddate = new Date(req.params.enddate);
-    const data = await getHistoricalSensorDataService(id, startdate, enddate);
+    // get parameters
+    const id = parseInt(req.query.ID as string);
+    const startdate = new Date(req.query.StartDate as string);
+    const enddate = new Date(req.query.EndDate as string);
+
+    // call service for data
+    const data = await GetHistoricalSensorDataService(id, startdate, enddate);
+
     // if no data, return 404
     if (data === undefined) {
         res.status(404).send('Data not found');
         return;
     }
+
+    // return data
+    res.header('Content-Type', 'application/json');
     res.send(data);
 };
 
-// GET /data/GetLatestSensorData/:id
+// GET /Data/GetLatestSensorData
 export const GetLatestSensorDataController = async (req: Request, res: Response) => {
-    res.header('Content-Type', 'application/json');
-    const id = parseInt(req.params.id, 10);
-    const data = await getLatestSensorDataService(id);
+    // get parameters
+    const id = parseInt(req.query.ID as string);
+
+    // call service for data
+    const data = await GetLatestSensorDataService(id);
+
     // if no data, return 404
     if (data === undefined) {
         res.status(404).send('Data not found');
         return;
     }
+
+    // return data
+    res.header('Content-Type', 'application/json');
     res.send(data);
 };
 
-// GET /data/GetSensorList
+// GET /Data/GetSensorList
 export const GetSensorListController = async (req: Request, res: Response) => {
-    res.header('Content-Type', 'application/json');
-    const data = await getSensorListService();
+    // call service for data
+    const data = await GetSensorListService();
+
     // if no data, return 404
     if (data === undefined) {
         res.status(404).send('No sensors found');
         return;
     }
+
+    // return data
+    res.header('Content-Type', 'application/json');
     res.send(data);
 };
-
-// GET /data/GetLogs
-export const GetLogsController = async (req: Request, res: Response) => {
-    res.send('get logs');
-}

@@ -9,8 +9,8 @@ app.use(express.json());
 // v1 routes
 
 // v2 api routes
-app.use('/data', v2dataRoutes);
-app.use('/sensor', v2sensorRoutes);
+app.use('/Data', v2dataRoutes);
+app.use('/Sensor', v2sensorRoutes);
 
 app.use('/', (req, res) => {
     res.send(`

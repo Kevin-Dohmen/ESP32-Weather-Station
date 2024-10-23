@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { param, validationResult } from 'express-validator';
 
 // validate sensor ID
-export const validateSensorId = (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params.id || isNaN(parseInt(req.params.id))) {
+export const ValidateSensorId = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.query.ID || isNaN(parseInt(req.query.ID as string))) {
         res.status(400).json({ error: 'Invalid sensor ID' });
         return;
     }
@@ -11,26 +11,26 @@ export const validateSensorId = (req: Request, res: Response, next: NextFunction
 };
 
 // validate date range
-export const validateDateRange = (req: Request, res: Response, next: NextFunction) => {
+export const ValidateDateRange = (req: Request, res: Response, next: NextFunction) => {
     // required
-    if (!req.params.startdate || !req.params.enddate) {
+    if (!req.query.StartDate || !req.query.EndDate) {
         res.status(400).json({ error: 'Start and end date are required' });
         return;
     }
 
     // valid format
-    if (!param('startdate').isISO8601().run(req)) {
+    if (!param('startdate').isISO8601().run(req.query)) {
         res.status(400).json({ error: 'Invalid date format' });
         return;
     }
-    if (!param('enddate').isISO8601().run(req)) {
+    if (!param('enddate').isISO8601().run(req.query)) {
         res.status(400).json({ error: 'Invalid date format' });
         return;
     }
 
     // valid range
-    const startDate = new Date(req.params.startdate);
-    const endDate = new Date(req.params.enddate);
+    const startDate = new Date(req.query.StartDate as string);
+    const endDate = new Date(req.query.EndDate as string);
     if (startDate.toString() === 'Invalid Date' || endDate.toString() === 'Invalid Date') {
         res.status(400).json({ error: 'Invalid date format' });
         return;

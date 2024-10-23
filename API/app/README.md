@@ -1,18 +1,18 @@
 # Calls:
 ## Data:
 
-## GET: ```/data/gethistoricaldata```
+## GET: ```/data/GetHistoricalData```
 Get historical data for a specific sensor from a specific date range.
 
-**Usage:** ```/data/gethistoricaldata/:id/:startdate/:enddate```
-### Parameters:
+**Usage:** ```/Data/GetHistoricalData/?ID=#&StartDate=#&EndDate=#```
+### Query Parameters:
 |Name|Format|Description|
 |:---|:-----|:----------|
-|**id**||ID of the sensor|
-|**startdate**|ISO8601|The start data|
-|**enddate**|ISO8601|The end date|
+|**ID**||ID of the sensor|
+|**StartDate**|ISO8601|The start data|
+|**EndDate**|ISO8601|The end date|
 
-Example: ```/data/gethistoricaldata/1/2024-10-01T12:00:00Z/2024-10-30T12:00:00Z```
+Example: ```/Data/GetHistoricalData/?ID=1&StartDate=2024-08-01T12:00:00Z&EndDate=2024-08-30T12:00:00Z```
 
 ### Output:
 A json object with all the data, consisting of the following fields:
@@ -28,16 +28,16 @@ A json object with all the data, consisting of the following fields:
 ```json
 [
     {
-        "Time": "2024-10-030 11:57:43",
+        "Time": "2024-08-05T07:06:35.000Z",
         "SensorID": 1,
-        "Temperature": 20.0,
-        "Humidity": 50.0
+        "Temperature": 25.4,
+        "Humidity": 46
     },
     {
-        "Time": "2021-06-01 11:52:43",
+        "Time": "2024-08-05T07:11:35.000Z",
         "SensorID": 1,
-        "Temperature": 20.1,
-        "Humidity": 50.1
+        "Temperature": 25.7,
+        "Humidity": 44
     }
 ]
 ```
@@ -48,16 +48,16 @@ A json object with all the data, consisting of the following fields:
 |404|Data not found|
 
 
-## GET: ```/data/getlatestsensordata```
+## GET: ```/Data/GetLatestSensorData```
 Get the latest sensor data for a specific sensor.
 
-**Usage:** ```/data/getlatestsensordata/:id```
-### Parameters:
+**Usage:** ```/Data/GetLatestSensorData/?ID=#```
+### Query Parameters:
 |Name|Description|
 |:---|:----------|
 |**ID**|The ID of the sensor|
 
-Example: ```/data/getlatestsensordata/1```
+Example: ```/Data/GetLatestSensorData/?ID=1```
 
 ### Output:
 A json object with a record of the latest data, consisting of a single record with the following fields:
@@ -73,10 +73,10 @@ A json object with a record of the latest data, consisting of a single record wi
 ```json
 [
     {
-        "Time": "2021-06-01 12:01:00",
+        "Time": "2024-10-23T17:14:47.000Z",
         "SensorID": 1,
-        "Temperature": 20.1,
-        "Humidity": 50.1
+        "Temperature": 19.8,
+        "Humidity": 66.5
     }
 ]
 ```
@@ -86,8 +86,10 @@ A json object with a record of the latest data, consisting of a single record wi
 |400|Bad Request|
 |404|Data not found|
 
-## GET: ```/data/getsensorlist``` [NOT IMPLEMENTED]
+## GET: ```/Data/GetSensorList```
 Get all sensors
+
+**Usage:** ```/Data/GetSensorList``` **[NOT FULLY IMPLEMENTED, DOCUMENTATION INACURATE]**
 
 ### Output:
 A json object with all the sensors, consisting of the following fields:
@@ -121,36 +123,7 @@ A json object with all the sensors, consisting of the following fields:
     }
 ]
 ```
-
-## GET: ```/data/getLogs``` [NOT IMPLEMENTED]
-Get all logs
-
-### Output:
-A json object with all the logs, consisting of the following fields:
-
-|Name|Type|Description|
-|:---|:---|:----------|
-|**Time**|DateTime|Time of message|
-|**Type**|Integer(Enum)|The log type|
-|**Message**|String|The log message|
-* Type
-  * 0 = Info
-  * 1 = Warning
-  * 2 = Error
-  * 3 = FATAL (maybe)
-
-#### Example:
-```json
-[
-    {
-        "Time": "2021-06-01 12:01:00",
-        "Type": 0,
-        "Message": "Info message"
-    },
-    {
-        "Time": "2021-06-01 12:02:00",
-        "Type": 1,
-        "Message": "Warning message"
-    }
-]
-```
+### Errors:
+|Code|Description|
+|:---|:----------|
+|404|Data not found|

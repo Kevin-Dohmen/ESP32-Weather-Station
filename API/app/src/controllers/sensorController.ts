@@ -44,7 +44,7 @@ export const GetConfig = async (req: Request, res: Response) => {
         res.send(config);
     } catch (err) {
         if (err instanceof SensorNotFoundError) {
-            res.status(401).send('Sensor not found');
+            res.status(404).send('Config not found');
             return;
         }
         res.status(500).send('Internal Server Error');

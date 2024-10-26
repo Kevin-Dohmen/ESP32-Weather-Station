@@ -42,6 +42,11 @@ export const GetSensorConfigService = async (id: number) => {
 
         const rows: any[] = await db.query('SELECT `SensorID`, `Interval` FROM SensorConfig WHERE SensorID = ?', [id]);
         const sensorConfig = rows[0][0];
+
+        if (!sensorConfig || sensorConfig.length === 0) {
+            throw new SensorNotFoundError();
+        }
+
         return sensorConfig;
     } catch (err) {
         logger.error(err);

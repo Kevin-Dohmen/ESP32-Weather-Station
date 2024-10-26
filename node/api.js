@@ -3,18 +3,19 @@ const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
+const logFunctionCall = require('./logger');
 
 // endpoints:
-    // webInterface:
-    // GET /getHistoricalData/:id/:days
-    // GET /getSensorData/:id
-    // GET /getSensors
-    // GET /getCurrentSensorData/:id
-    // 
-    // Sensor:
-    // POST /status
-    // POST /data
-    // GET /config/:apikey
+// webInterface:
+// GET /getHistoricalData/:id/:days
+// GET /getSensorData/:id
+// GET /getSensors
+// GET /getCurrentSensorData/:id
+// 
+// Sensor:
+// POST /status
+// POST /data
+// GET /config/:apikey
 
 
 // config
@@ -29,19 +30,22 @@ const telegramConfig = config.telegram;
 
 // initialize the database connection
 const db = mysql.createConnection({
-  host: dbconf.host,
-  port: dbconf.port,
-  user: dbconf.user,
-  password: dbconf.password,
-  database: dbconf.database
+    host: dbconf.host,
+    port: dbconf.port,
+    user: dbconf.user,
+    password: dbconf.password,
+    database: dbconf.database
 });
 
 // connect to the database
 db.connect((err) => {
+    logFunctionCall('db.connect', { err });
     if (err) {
+        logFunctionCall('db.connect | error found', { err });
         console.error('Error connecting to database:', err);
         return;
     }
+    logFunctionCall('db.connect | connected to db', { err });
     console.log('Connected to database');
 
     // check database connection periodically
@@ -49,18 +53,23 @@ db.connect((err) => {
         try {
             db.ping((err) => {
                 if (err) {
+                    logFunctionCall('db.connect | Lost DB connection', { err });
                     errHandler('Lost connection to database', err);
                     db.connect((err) => {
                         if (err) {
+                            logFunctionCall('db.connect | Failed to reconnect', { err });
+
                             errHandler('Error reconnecting to database', err);
                             return;
                         }
                         console.log('Reconnected to database');
+                        logFunctionCall('db.connect | Reconnect', { err });
                         msgHandler('Reconnected to database', true);
                     });
                 }
             });
         } catch (err) {
+            logFunctionCall('db.connect | Failed to test for db connection', { err });
             errHandler('Error checking database connection', err, true);
         }
     }, 5000); // check every 5 seconds
@@ -79,7 +88,8 @@ app.use((req, res, next) => {
 
 // function to fetch the sensor data from the database
 app.get('/getHistoricalData/:id/:days', (req, res) => {
-    try{
+    logFunctionCall('app.get /getHistoricalData/:id/:days', { id: req.params.id, days: req.params.days });
+    try {
         const id = req.params.id;
         const days = req.params.days;
         if (days > 0 && days <= 30) {
@@ -87,7 +97,9 @@ app.get('/getHistoricalData/:id/:days', (req, res) => {
             timeFrame.setDate(timeFrame.getDate() - days);
 
             db.query('SELECT * FROM Data WHERE SensorID = ? AND Time >= ? ORDER BY Time ASC', [id, timeFrame], (err, results) => {
+                logFunctionCall('db.query', { sql: 'SELECT * FROM Data WHERE SensorID = ? AND Time >= ? ORDER BY Time ASC', params: [id, timeFrame] });
                 if (err) {
+                    logFunctionCall('db.query | error', { err });
                     errHandler('', err);
                     res.status(500).send('Error fetching data');
                     return;
@@ -95,20 +107,25 @@ app.get('/getHistoricalData/:id/:days', (req, res) => {
                 res.send(results);
             });
         } else {
+            logFunctionCall('app.get /getHistoricalData/:id/:days | invalid days parameter', { days });
             res.status(400).send('Invalid days parameter');
         }
     } catch (err) {
+        logFunctionCall('app.get /getHistoricalData/:id/:days | catch error', { err });
         errHandler('Error fetching historical data', err);
     }
 });
 
 // function to fetch the latest sensor data from the database
 app.get('/getSensorData/:id', (req, res) => {
-    try{
+    logFunctionCall('app.get /getHistoricalData/:id/:days', { id: req.params.id, days: req.params.days });
+    try {
         const id = req.params.id;
 
         db.query('SELECT * FROM Data WHERE SensorID = ? ORDER BY Time DESC LIMIT 1', [id], (err, results) => {
+            logFunctionCall('db.query', { sql: 'SELECT * FROM Data WHERE SensorID = ? AND Time >= ? ORDER BY Time ASC', params: [id, timeFrame] });
             if (err) {
+                logFunctionCall('db.query | error', { err });
                 errHandler('', err);
                 res.status(500).send('Error fetching data');
                 return;
@@ -116,15 +133,19 @@ app.get('/getSensorData/:id', (req, res) => {
             res.send(results);
         });
     } catch (err) {
+        logFunctionCall('app.get /getHistoricalData/:id/:days | catch error', { err });
         errHandler('Error fetching sensor data', err);
     }
 });
 
 // function to fetch all sensors from the database
 app.get('/getSensors', (req, res) => {
-    try{
+    logFunctionCall('app.get /getSensors', {});
+    try {
         db.query('SELECT * FROM Sensor', (err, results) => {
+            logFunctionCall('db.query', { sql: 'SELECT * FROM Sensor' });
             if (err) {
+                logFunctionCall('db.query | error', { err });
                 errHandler('', err);
                 res.status(500).send('Error fetching data');
                 return;
@@ -132,16 +153,19 @@ app.get('/getSensors', (req, res) => {
             res.send(results);
         });
     } catch (err) {
+        logFunctionCall('app.get /getSensors | catch error', { err });
         errHandler('Error fetching sensors', err);
     }
 });
 
 // function to fetch the latest sensor data from the database
 app.get('/getCurrentSensorData/:id', (req, res) => {
-    try{
+    logFunctionCall('app.get /getCurrentSensorData/:id', { id: req.params.id });
+    try {
         const id = req.params.id;
 
         db.query('SELECT * FROM Data WHERE SensorID = ? ORDER BY Time DESC LIMIT 1', [id], (err, results) => {
+            LogFunctionCall('db.query', { sql: 'SELECT * FROM Data WHERE SensorID = ? ORDER BY Time DESC LIMIT 1', params: [id] });
             if (err) {
                 errHandler('', err);
                 res.status(500).send('Error fetching data');
@@ -150,17 +174,21 @@ app.get('/getCurrentSensorData/:id', (req, res) => {
             res.send(results);
         });
     } catch (err) {
+        LogFunctionCall('app.get /getCurrentSensorData/:id | catch error', { err });
         errHandler('Error fetching sensor data', err);
     }
 });
 
 // function to fetch the config for the API
 app.get('/config/:apikey', (req, res) => {
-    try{
+    LogFunctionCall('app.get /config/:apikey', { apikey: req.params.apikey });
+    try {
         const apikey = req.params.apikey;
 
         db.query('SELECT * FROM Sensor WHERE APIKey = ?', [apikey], (err, results) => {
+            LogFunctionCall('db.query', { sql: 'SELECT * FROM Sensor WHERE APIKey = ?', params: [apikey] });
             if (err) {
+                LogFunctionCall('db.query | error', { err });
                 errHandler('', err);
                 res.status(500).send('Error fetching data');
                 return;
@@ -170,7 +198,9 @@ app.get('/config/:apikey', (req, res) => {
                 return;
             }
             db.query('SELECT * FROM SensorConfig WHERE SensorID = ?', [results[0].ID], (err, results) => {
+                logFunctionCall('db.query', { sql: 'SELECT * FROM SensorConfig WHERE SensorID = ?', params: [results[0].ID] });
                 if (err) {
+                    LogFunctionCall('db.query | error', { err });
                     errHandler('', err);
                     res.status(500).send('Error fetching data');
                     return;
@@ -179,16 +209,18 @@ app.get('/config/:apikey', (req, res) => {
             });
         });
     } catch (err) {
+        LogFunctionCall('app.get /config/:apikey | catch error', { err });
         errHandler('Error fetching sensor config', err);
     }
 });
 
 // function to handle sensor status updates
 app.post('/status', express.json(), (req, res) => {
-    try{
+    logFunctionCall('app.post /status', { body: req.body });
+    try {
         console.log(req.body);
         data = req.body;
-        
+
         let apikey = data.api_key;
         console.log('API Key:', apikey);
         let rawstatus = data.status;
@@ -206,10 +238,12 @@ app.post('/status', express.json(), (req, res) => {
                 status = "Sensor Error";
                 break;
         }
-
+        logFunctionCall('app.post /status | status', { status });
         // set status and update time in the database
         db.query('UPDATE Sensor SET Status = ?, LastStatus = NOW() WHERE APIKey = ?', [status, apikey], (err) => {
+            logFunctionCall('db.query', { sql: 'UPDATE Sensor SET Status = ?, LastStatus = NOW() WHERE APIKey = ?', params: [status, apikey] });
             if (err) {
+                logFunctionCall('db.query | error', { err });
                 errHandler('', err);
                 res.status(500).send('Error updating status');
                 return;
@@ -218,20 +252,23 @@ app.post('/status', express.json(), (req, res) => {
 
         res.send('ok');
     } catch (err) {
+        logFunctionCall('app.post /status | catch error', { err });
         errHandler('Error updating sensor status', err);
     }
 });
 
 // function to handle sensor data updates
 app.post('/data', express.json(), (req, res) => {
-    try{
+    logFunctionCall('app.post /data', { body: req.body });
+    try {
         let data = req.body;
         if (data.length === 0) {
+            logFunctionCall('app.post /data | no data received', { data });
             res.status(400).send('No data received');
             return;
         }
-        let temp = data.temperature/1000;
-        let hum = data.humidity/1000;
+        let temp = data.temperature / 1000;
+        let hum = data.humidity / 1000;
         console.log('Temperature:', temp, '°C');
         console.log('Humidity:', hum, '%');
         let apikey = data.api_key;
@@ -239,7 +276,9 @@ app.post('/data', express.json(), (req, res) => {
 
         // get the sensor ID from the API key
         db.query('SELECT ID FROM Sensor WHERE APIKey = ?', [apikey], (err, results) => {
+            logFunctionCall('db.query', { sql: 'SELECT ID FROM Sensor WHERE APIKey = ?', params: [apikey] });
             if (err) {
+                logFunctionCall('db.query | error', { err });
                 errHandler('', err);
                 res.status(500).send('Error fetching data');
                 return;
@@ -252,7 +291,9 @@ app.post('/data', express.json(), (req, res) => {
 
             // insert the data into the database
             db.query('INSERT INTO Data (SensorID, Temperature, Humidity) VALUES (?, ?, ?)', [sensorID, temp, hum], (err) => {
+                logFunctionCall('db.query', { sql: 'INSERT INTO Data (SensorID, Temperature, Humidity) VALUES (?, ?, ?)', params: [sensorID, temp, hum] });
                 if (err) {
+                    logFunctionCall('db.query | error', { err });
                     errHandler('', err);
                     res.status(500).send('Error inserting data');
                     return;
@@ -261,14 +302,18 @@ app.post('/data', express.json(), (req, res) => {
             });
         });
     } catch (err) {
+        logFunctionCall('app.post /data | catch error', { err });
         errHandler('Error inserting sensor data', err);
     }
 });
 
 // get error logs
 app.get('/logs', (req, res) => {
+    LogFunctionCall('app.get /logs', {});
     fs.readFile('log.log', 'utf8', (err, data) => {
+        logFunctionCall('fs.readFile', { err, data });
         if (err) {
+            LogFunctionCall('fs.readFile | error', { err });
             errHandler('Error reading log file', err);
             res.status(500).send('Error reading log file');
             return;
@@ -279,6 +324,7 @@ app.get('/logs', (req, res) => {
 
 // function to handle errors
 app.use((err, req, res, next) => {
+    LogFunctionCall('app.use', { err });
     errHandler('Internal Server Error', err);
     res.status(500).send('Internal Server Error');
 });
@@ -286,7 +332,7 @@ app.use((err, req, res, next) => {
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
-  
+
 // start the express app
 app.listen(port, () => {
     console.log(`App listening at http://localhost:${port}`);
@@ -297,6 +343,7 @@ app.listen(port, () => {
 
 // function to send a message to the Telegram bot
 async function sendTelegramMessage(message) {
+    LogFunctionCall('sendTelegramMessage', { message });
     try {
         console.log('Sending message:', message);
         console.log('Telegram config:', telegramConfig);
@@ -305,11 +352,13 @@ async function sendTelegramMessage(message) {
         const data = await response.json();
         console.log(data);
     } catch (err) {
+        LogFunctionCall('sendTelegramMessage | error', { err });
         errHandler('Error sending Telegram message', err)
     }
 }
 
 function msgHandler(message, Telegram = false, sendLog = true) {
+    LogFunctionCall('msgHandler', { message, Telegram, sendLog });
     console.log(message);
     if (Telegram && useTelegram) {
         sendTelegramMessage(message);
@@ -320,6 +369,7 @@ function msgHandler(message, Telegram = false, sendLog = true) {
 }
 
 function errHandler(errorMessage, err, Telegram = false, Log = true, fatal = false) {
+    LogFunctionCall('errHandler', { errorMessage, err, Telegram, Log, fatal });
     console.error(errorMessage, err);
     if (Telegram && useTelegram) {
         sendTelegramMessage('ERROR: ' + errorMessage);
@@ -333,6 +383,7 @@ function errHandler(errorMessage, err, Telegram = false, Log = true, fatal = fal
 }
 
 function log(message) {
+    LogFunctionCall('log', { message });
     // format message
     message = new Date().toISOString() + ': ' + message;
 
@@ -399,4 +450,4 @@ setInterval(() => {
         });
     });
 }
-, 60000); // check every 60 seconds
+    , 60000); // check every 60 seconds

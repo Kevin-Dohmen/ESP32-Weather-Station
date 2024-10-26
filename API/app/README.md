@@ -1,5 +1,5 @@
 # Calls:
-## Data:
+# Data:
 
 ## GET: ```/data/GetHistoricalData```
 Get historical data for a specific sensor from a specific date range.
@@ -127,3 +127,115 @@ A json object with all the sensors, consisting of the following fields:
 |Code|Description|
 |:---|:----------|
 |404|Data not found|
+
+# Sensor:
+## POST: ```/v2/Sensor/HeartBeat```
+Send a heartbeat to the server to indicate that the sensor is still online.
+Also contains the status of the sensor, which can be used to indicate if the sensor is in an error state.
+
+**Usage:** ```/Sensor/HeartBeat```
+
+### Request Headers:
+|Name|Description|
+|:---|:----------|
+|**API-Key**|The API key for the sensor|
+
+### Request Body:
+A json object with the following fields:
+
+|Name|Type|Description|
+|:---|:---|:----------|
+|**Status**|Integer(Enum)|The sensor status|
+
+* Status
+  * 0 = Online
+  * 1 = Unknown Error
+  * 2 = Sensor Error
+
+#### Example:
+```json
+{
+    "Status": 0
+}
+```
+
+### Output:
+A response code with a message
+
+### Response Codes:
+|Code|Description|
+|:---|:----------|
+|200|OK|
+|400|Invalid status|
+|401|Unauthorized|
+|500|Internal Server Error|
+
+## POST: ```/v2/Sensor/UpdateData```
+Update the sensor data on the server.
+
+**Usage:** ```/Sensor/UpdateData```
+
+### Request Headers:
+|Name|Description|
+|:---|:----------|
+|**API-Key**|The API key for the sensor|
+
+### Request Body:
+A json object with the following fields:
+
+|Name|Type|Description|
+|:---|:---|:----------|
+|**Temperature**|Float|Temerature in °C|
+|**Humidity**|Float|Relative Humidity in %|
+
+#### Example:
+```json
+{
+    "Temperature": 25.4,
+    "Humidity": 46
+}
+```
+
+### Output:
+A response code with a message
+
+### Response Codes:
+|Code|Description|
+|:---|:----------|
+|200|OK|
+|400|Invalid data|
+|401|Unauthorized|
+|500|Internal Server Error|
+
+## GET: ```/v2/Sensor/GetConfig```
+Get the configuration for the sensor.
+
+**Usage:** ```/Sensor/GetConfig```
+
+### Request Headers:
+|Name|Description|
+|:---|:----------
+|**API-Key**|The API key for the sensor|
+
+### Output:
+A json object with the configuration for the sensor, consisting of the following fields:
+
+|Name|Type|Description|
+|:---|:---|:----------|
+|**SensorID**|Integer|The sensor ID|
+|**Interval**|Integer|The interval in seconds between updates|
+
+#### Example:
+```json
+{
+    "SensorID": 1,
+    "Interval": 300
+}
+```
+
+### Response Codes:
+|Code|Description|
+|:---|:----------|
+|200|OK|
+|401|Unauthorized|
+|500|Internal Server Error|

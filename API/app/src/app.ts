@@ -1,7 +1,6 @@
 import express, { Application } from 'express';
-import v2dataRoutes from './routes/dataRoutes';
-import v2sensorRoutes from './routes/sensorRoutes';
-import { sensorAuth } from './middleware/sensorAuth';
+import { SensorAuth } from './middleware/sensorAuth';
+import v2Routes from './routes/v2Routes';
 
 const app: Application = express();
 
@@ -9,8 +8,7 @@ app.use(express.json());
 // v1 routes
 
 // v2 api routes
-app.use('/Data', v2dataRoutes);
-app.use('/Sensor', v2sensorRoutes);
+app.use('/v2', v2Routes);
 
 app.use('/', (req, res) => {
     res.send(`

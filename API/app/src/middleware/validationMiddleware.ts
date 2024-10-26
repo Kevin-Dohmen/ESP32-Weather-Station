@@ -48,3 +48,15 @@ export const ValidateDateRange = (req: Request, res: Response, next: NextFunctio
     next();
 };
 
+export const ValidateSensorData = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.body.SensorID || isNaN(parseInt(req.body.SensorID as string))) {
+        res.status(400).json({ error: 'Invalid sensor ID' });
+        return;
+    }
+    if (!req.body.Data || isNaN(parseFloat(req.body.Data.Temperature as string)) || isNaN(parseFloat(req.body.Data.Humidity as string))){
+        res.status(400).json({ error: 'Invalid data' });
+        return;
+    }
+    next();
+}
+

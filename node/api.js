@@ -1,9 +1,8 @@
-const fs = require('fs');
-const express = require('express');
-const mysql = require('mysql');
-const bodyParser = require('body-parser');
-const fetch = require('node-fetch');
-const logFunctionCall = require('./logger');
+import fs from 'fs';
+import express from 'express';
+import mysql from 'mysql2/promise';
+import fetch from 'node-fetch';
+import logFunctionCall from './logger.js';
 
 // endpoints:
 // webInterface:

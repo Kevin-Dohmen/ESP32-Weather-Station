@@ -1,6 +1,6 @@
-const { createLogger, format, transports } = require('winston');
-const DailyRotateFile = require('winston-daily-rotate-file');
-const path = require('path');
+import { createLogger, format, transports } from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
+import path from 'path';
 
 const logFilePath = path.join(__dirname, 'api-%DATE%.log');
 
@@ -32,3 +32,5 @@ function logFunctionCall(functionName, params) {
 }
 
 module.exports = logFunctionCall;
+
+export default logger;

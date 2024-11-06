@@ -1,12 +1,14 @@
 services:
   app:
     build: .
-    ports:
-      - "3000:3000"
     env_file:
       - .env
+    ports:
+      - "3000:3000"
     depends_on:
       - db
+    environment:
+      - DATABASE_HOST=db
 
   db:
     image: "mysql:8.0"
@@ -15,8 +17,10 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - db_data:/var/lib/mysql
+      - db-data:/var/lib/mysql
       - ./db-init:/docker-entrypoint-initdb.d
+    command: --init-file /docker-entrypoint-initdb.d/init.sql
+    
 
 volumes:
-  db_data:
+  db-data: {}

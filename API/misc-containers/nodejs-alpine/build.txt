@@ -1,0 +1,3 @@
+docker build . -t nodejs-alpine:1
+
+docker push nodejs-alpine:1

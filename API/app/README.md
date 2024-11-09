@@ -1,10 +1,10 @@
 # Calls:
 # Data:
 
-## GET: ```/data/GetHistoricalData```
+## GET: ```/API/V2/data/GetHistoricalData```
 Get historical data for a specific sensor from a specific date range.
 
-**Usage:** ```/Data/GetHistoricalData/?ID=#&StartDate=#&EndDate=#```
+**Usage:** ```/API/V2/Data/GetHistoricalData/?ID=#&StartDate=#&EndDate=#```
 ### Query Parameters:
 |Name|Format|Description|
 |:---|:-----|:----------|
@@ -12,7 +12,7 @@ Get historical data for a specific sensor from a specific date range.
 |**StartDate**|ISO8601|The start data|
 |**EndDate**|ISO8601|The end date|
 
-Example: ```/Data/GetHistoricalData/?ID=1&StartDate=2024-08-01T12:00:00Z&EndDate=2024-08-30T12:00:00Z```
+Example: ```/API/V2/Data/GetHistoricalData/?ID=1&StartDate=2024-08-01T12:00:00Z&EndDate=2024-08-30T12:00:00Z```
 
 ### Output:
 A json object with all the data, consisting of the following fields:
@@ -48,16 +48,16 @@ A json object with all the data, consisting of the following fields:
 |404|Data not found|
 
 
-## GET: ```/Data/GetLatestSensorData```
+## GET: ```/API/V2/Data/GetLatestSensorData```
 Get the latest sensor data for a specific sensor.
 
-**Usage:** ```/Data/GetLatestSensorData/?ID=#```
+**Usage:** ```/API/V2/Data/GetLatestSensorData/?ID=#```
 ### Query Parameters:
 |Name|Description|
 |:---|:----------|
 |**ID**|The ID of the sensor|
 
-Example: ```/Data/GetLatestSensorData/?ID=1```
+Example: ```/API/V2/Data/GetLatestSensorData/?ID=1```
 
 ### Output:
 A json object with a record of the latest data, consisting of a single record with the following fields:
@@ -86,10 +86,10 @@ A json object with a record of the latest data, consisting of a single record wi
 |400|Bad Request|
 |404|Data not found|
 
-## GET: ```/Data/GetSensorList```
+## GET: ```/API/V2/Data/GetSensorList```
 Get all sensors
 
-**Usage:** ```/Data/GetSensorList``` **[NOT FULLY IMPLEMENTED, DOCUMENTATION INACURATE]**
+**Usage:** ```/API/V2/Data/GetSensorList``` **[NOT FULLY IMPLEMENTED, DOCUMENTATION INACURATE]**
 
 ### Output:
 A json object with all the sensors, consisting of the following fields:
@@ -129,11 +129,11 @@ A json object with all the sensors, consisting of the following fields:
 |404|Data not found|
 
 # Sensor:
-## POST: ```/v2/Sensor/HeartBeat```
+## POST: ```/API/V2/Sensor/HeartBeat```
 Send a heartbeat to the server to indicate that the sensor is still online.
 Also contains the status of the sensor, which can be used to indicate if the sensor is in an error state.
 
-**Usage:** ```/Sensor/HeartBeat```
+**Usage:** ```/API/V2/Sensor/HeartBeat```
 
 ### Request Headers:
 |Name|Description|
@@ -170,10 +170,10 @@ A response code with a message
 |401|Unauthorized|
 |500|Internal Server Error|
 
-## POST: ```/v2/Sensor/UpdateData```
+## POST: ```/API/V2/Sensor/UpdateData```
 Update the sensor data on the server.
 
-**Usage:** ```/Sensor/UpdateData```
+**Usage:** ```/API/V2/Sensor/UpdateData```
 
 ### Request Headers:
 |Name|Description|
@@ -207,10 +207,10 @@ A response code with a message
 |401|Unauthorized|
 |500|Internal Server Error|
 
-## GET: ```/v2/Sensor/GetConfig```
+## GET: ```/API/V2/Sensor/GetConfig```
 Get the configuration for the sensor.
 
-**Usage:** ```/Sensor/GetConfig```
+**Usage:** ```/API/V2/Sensor/GetConfig```
 
 ### Request Headers:
 |Name|Description|

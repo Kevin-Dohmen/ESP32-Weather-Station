@@ -1,14 +1,14 @@
 import express, { Application } from 'express';
-import { SensorAuth } from './middleware/sensorAuth';
 import v2Routes from './routes/v2Routes';
+import cors from 'cors';
 
 const app: Application = express();
 
 app.use(express.json());
-// v1 routes
+app.use(cors());
 
 // v2 api routes
-app.use('/v2', v2Routes);
+app.use('/API/V2', v2Routes);
 
 app.use('/', (req, res) => {
     res.send(`

@@ -1,4 +1,4 @@
-import { logger, logLevel } from "./logger.js";
+import { logger, logLevel } from "../logger.js";
 
 async function GETJson(RequestLink){
     try {
